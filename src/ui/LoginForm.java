@@ -3,6 +3,7 @@ package ui;
 import service.*;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 
 public class LoginForm extends JFrame {
 
@@ -10,116 +11,181 @@ public class LoginForm extends JFrame {
     private JPasswordField txtPass;
 
     public LoginForm() {
-        setTitle("Aplikasi Pengaduan Masyarakat");
-        setExtendedState(MAXIMIZED_BOTH);
+        setTitle("Login - Pengaduan");
+        setSize(1000, 600);
+        setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLayout(new BorderLayout());
+        setLayout(new GridBagLayout());
+        getContentPane().setBackground(new Color(230,230,230));
 
-        // 🔵 PANEL KIRI (Branding)
-        JPanel leftPanel = new JPanel();
-        leftPanel.setBackground(new Color(0, 102, 204));
-        leftPanel.setLayout(new GridBagLayout());
+        // 🔥 WRAPPER (BIAR CENTER & GAK NUTUP ROUNDED)
+        JPanel wrapper = new JPanel(new GridBagLayout());
+        wrapper.setOpaque(false);
 
-        JLabel title = new JLabel("PENGADUAN");
-        title.setForeground(Color.WHITE);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 36));
+        // 🔲 CARD UTAMA (ROUNDED FIX)
+        RoundedPanel mainCard = new RoundedPanel(30);
+        mainCard.setLayout(new GridLayout(1,2));
+        mainCard.setPreferredSize(new Dimension(900,500));
+        mainCard.setBackground(Color.WHITE);
 
-        JLabel subtitle = new JLabel("Laporkan masalah dengan mudah");
-        subtitle.setForeground(Color.WHITE);
-        subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-
-        JPanel textPanel = new JPanel();
-        textPanel.setOpaque(false);
-        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
-        textPanel.add(title);
-        textPanel.add(Box.createRigidArea(new Dimension(0,10)));
-        textPanel.add(subtitle);
-
-        leftPanel.add(textPanel);
-
-        // ⚪ PANEL KANAN (Form Login)
-        JPanel rightPanel = new JPanel(new GridBagLayout());
-        rightPanel.setBackground(Color.WHITE);
-
-        JPanel card = new JPanel();
-        card.setPreferredSize(new Dimension(350, 300));
-        card.setBackground(Color.WHITE);
-        card.setLayout(new GridBagLayout());
-        card.setBorder(BorderFactory.createLineBorder(new Color(220,220,220)));
+        // ======================
+        // ⚪ LEFT (FORM LOGIN)
+        // ======================
+        JPanel left = new JPanel(new GridBagLayout());
+        left.setOpaque(false);
 
         GridBagConstraints c = new GridBagConstraints();
-        c.insets = new Insets(10, 20, 10, 20);
+        c.insets = new Insets(12,30,12,30);
         c.fill = GridBagConstraints.HORIZONTAL;
 
-        JLabel lblLogin = new JLabel("LOGIN");
-        lblLogin.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        lblLogin.setHorizontalAlignment(JLabel.CENTER);
+        JLabel title = new JLabel("Login");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
 
         txtUser = new JTextField();
         txtPass = new JPasswordField();
 
-        styleField(txtUser, "Username");
-        styleField(txtPass, "Password");
+        styleField(txtUser);
+        styleField(txtPass);
 
-        JButton btnLogin = new JButton("Login");
-        btnLogin.setBackground(new Color(0, 102, 204));
+        // 👁 SHOW PASSWORD (FIX)
+        JButton btnShow = new JButton("👁");
+        btnShow.setBorderPainted(false);
+        btnShow.setContentAreaFilled(false);
+
+        btnShow.addActionListener(e -> {
+            if (txtPass.getEchoChar() == 0) {
+                txtPass.setEchoChar('•');
+            } else {
+                txtPass.setEchoChar((char)0);
+            }
+        });
+
+        // ❗ FIX: panel password biar gak rusak
+        JPanel passWrapper = new JPanel(new BorderLayout());
+        passWrapper.setBackground(new Color(245,245,245));
+        passWrapper.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
+        passWrapper.add(txtPass, BorderLayout.CENTER);
+        passWrapper.add(btnShow, BorderLayout.EAST);
+
+        // 🔘 BUTTON (ROUNDED FIX)
+        JButton btnLogin = new JButton("Masuk"){
+            protected void paintComponent(Graphics g){
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                g2.setColor(getBackground());
+                g2.fillRoundRect(0,0,getWidth(),getHeight(),40,40);
+
+                super.paintComponent(g);
+                g2.dispose();
+            }
+        };
+
+        btnLogin.setBackground(Color.BLACK);
         btnLogin.setForeground(Color.WHITE);
         btnLogin.setFocusPainted(false);
+        btnLogin.setContentAreaFilled(false);
+        btnLogin.setBorder(BorderFactory.createEmptyBorder(14,10,14,10));
+
+        // Hover
+        btnLogin.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) {
+                btnLogin.setBackground(new Color(50,50,50));
+            }
+            public void mouseExited(MouseEvent e) {
+                btnLogin.setBackground(Color.BLACK);
+            }
+        });
 
         JButton btnRegister = new JButton("Belum punya akun?");
         btnRegister.setBorderPainted(false);
         btnRegister.setContentAreaFilled(false);
-        btnRegister.setForeground(new Color(0, 102, 204));
+        btnRegister.setForeground(Color.GRAY);
 
-        c.gridx = 0;
-        c.gridy = 0;
-        card.add(lblLogin, c);
-
-        c.gridy++;
-        card.add(txtUser, c);
+        // Layout kiri
+        c.gridx=0; c.gridy=0;
+        left.add(title,c);
 
         c.gridy++;
-        card.add(txtPass, c);
+        left.add(txtUser,c);
 
         c.gridy++;
-        card.add(btnLogin, c);
+        left.add(passWrapper,c);
 
         c.gridy++;
-        card.add(btnRegister, c);
+        left.add(btnLogin,c);
 
-        rightPanel.add(card);
+        c.gridy++;
+        left.add(btnRegister,c);
 
-        // 🧩 Split layout (responsive)
-        JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, leftPanel, rightPanel);
-        split.setDividerLocation(600);
-        split.setEnabled(false);
+        // ======================
+        // 🔵 RIGHT (VISUAL)
+        // ======================
+        JPanel right = new JPanel() {
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
 
-        add(split, BorderLayout.CENTER);
+                GradientPaint gp = new GradientPaint(
+                        0,0,new Color(52,120,246),
+                        getWidth(),getHeight(),new Color(0,180,255)
+                );
 
-        // 🔗 LOGIC
+                g2.setPaint(gp);
+                g2.fillRect(0,0,getWidth(),getHeight());
+            }
+        };
+
+        right.setLayout(new GridBagLayout());
+
+        JLabel text = new JLabel("Selamat Datang");
+        text.setForeground(Color.WHITE);
+        text.setFont(new Font("Segoe UI", Font.BOLD, 20));
+
+        right.add(text);
+
+        // ======================
+        mainCard.add(left);
+        mainCard.add(right);
+
+        // 🌫️ SHADOW (BIAR ROUNDED KELIATAN)
+        ShadowPanel shadow = new ShadowPanel(30);
+        shadow.add(mainCard);
+
+        wrapper.add(shadow);
+        add(wrapper);
+
+        // 🔗 LOGIN LOGIC
         AuthService auth = new AuthServiceImpl();
 
         btnLogin.addActionListener(e -> {
-            String role = auth.login(
-                txtUser.getText(),
-                new String(txtPass.getPassword())
+
+            model.User user = auth.getUser(
+                    txtUser.getText(),
+                    new String(txtPass.getPassword())
             );
 
-            if (role != null) {
+            if (user != null) {
+
+                // 🔥 SET SESSION
+                session.Session.idUser = user.getIdUser();
+                session.Session.username = user.getUsername();
+                session.Session.role = user.getRole();
+
                 JOptionPane.showMessageDialog(this, "Login berhasil!");
 
-                if (role.equals("admin")) {
+                if (user.getRole().equals("admin")) {
                     new AdminDashboard().setVisible(true);
                 } else {
                     new UserDashboard().setVisible(true);
                 }
 
                 dispose();
+
             } else {
-                JOptionPane.showMessageDialog(this, "Login gagal!");
+                JOptionPane.showMessageDialog(this, "Username atau password salah!");
             }
         });
-
         btnRegister.addActionListener(e -> {
             new RegisterForm().setVisible(true);
             dispose();
@@ -128,9 +194,51 @@ public class LoginForm extends JFrame {
         setVisible(true);
     }
 
-    // 🎨 Styling input
-    private void styleField(JTextField field, String placeholder) {
-        field.setPreferredSize(new Dimension(200, 40));
-        field.setBorder(BorderFactory.createTitledBorder(placeholder));
+    // 🎨 INPUT STYLE (FIX BIAR GAK RUSAK)
+    private void styleField(JTextField field){
+        field.setPreferredSize(new Dimension(200,40));
+        field.setBackground(new Color(245,245,245));
+        field.setBorder(BorderFactory.createEmptyBorder(8,10,8,10));
+    }
+
+    // 🔵 ROUNDED PANEL FIX
+    class RoundedPanel extends JPanel {
+        int radius;
+
+        RoundedPanel(int r){
+            radius = r;
+            setOpaque(false);
+        }
+
+        protected void paintComponent(Graphics g){
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(getBackground());
+            g2.fillRoundRect(0,0,getWidth(),getHeight(),radius,radius);
+
+            g2.dispose();
+        }
+    }
+
+    // 🌫️ SHADOW PANEL
+    class ShadowPanel extends JPanel {
+        int radius;
+
+        ShadowPanel(int r){
+            radius = r;
+            setOpaque(false);
+            setLayout(new GridBagLayout());
+        }
+
+        protected void paintComponent(Graphics g){
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            g2.setColor(new Color(0,0,0,40));
+            g2.fillRoundRect(8,8,getWidth()-8,getHeight()-8,radius,radius);
+
+            g2.dispose();
+        }
     }
 }

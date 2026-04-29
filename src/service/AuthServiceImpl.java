@@ -19,11 +19,39 @@ public class AuthServiceImpl implements AuthService {
             ResultSet rs = pst.executeQuery();
 
             if (rs.next()) {
-                return rs.getString("role"); // 🔥 ambil role
+                return rs.getString("role");
             }
 
         } catch (Exception e) {
             System.out.println("Login error: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // 🔥 METHOD BARU (PENTING)
+    @Override
+    public User getUser(String username, String password) {
+        try {
+            Connection conn = Koneksi.getConnection();
+
+            String sql = "SELECT * FROM users WHERE username=? AND password=?";
+            PreparedStatement pst = conn.prepareStatement(sql);
+
+            pst.setString(1, username);
+            pst.setString(2, password);
+
+            ResultSet rs = pst.executeQuery();
+
+            if (rs.next()) {
+                User user = new User();
+                user.setIdUser(rs.getString("id_user"));
+                user.setUsername(rs.getString("username"));
+                user.setRole(rs.getString("role"));
+                return user;
+            }
+
+        } catch (Exception e) {
+            System.out.println("Get user error: " + e.getMessage());
         }
         return null;
     }
