@@ -1,4 +1,4 @@
-package ui;
+package ui.USER;
 
 import config.Koneksi;
 import session.Session;
@@ -6,6 +6,7 @@ import session.Session;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
+import ui.LoginForm;
 
 public class ProfilPanel extends JPanel {
 

@@ -1,4 +1,4 @@
-package ui;
+package ui.USER;
 
 import config.Koneksi;
 import session.Session;
@@ -15,6 +15,9 @@ public class HomePanel extends JPanel {
     private JTextField txtCari;
     private Timer refreshTimer;
 
+    private JComboBox<String> filterBox;
+    private String mode = "Semua";
+
     public HomePanel() {
 
         setLayout(new BorderLayout());
@@ -27,24 +30,12 @@ public class HomePanel extends JPanel {
         startAutoRefresh();
     }
 
-    // ==================================================
-    // AUTO REFRESH
-    // ==================================================
     private void startAutoRefresh() {
-
         refreshTimer = new Timer(3000, e -> loadData());
         refreshTimer.start();
     }
 
-    public void stopAutoRefresh() {
-        if(refreshTimer != null){
-            refreshTimer.stop();
-        }
-    }
-
-    // ==================================================
-    // HEADER
-    // ==================================================
+    // ================= HEADER =================
     private JPanel createHeader() {
 
         JPanel header = new JPanel();
@@ -72,11 +63,6 @@ public class HomePanel extends JPanel {
         searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE,48));
         searchPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        RoundedPanel searchWrap = new RoundedPanel(18);
-        searchWrap.setLayout(new BorderLayout());
-        searchWrap.setBackground(Color.WHITE);
-        searchWrap.setBorder(new EmptyBorder(0,15,0,0));
-
         txtCari = new JTextField("Cari pengaduan...");
         txtCari.setBorder(null);
         txtCari.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -89,7 +75,6 @@ public class HomePanel extends JPanel {
                     txtCari.setForeground(Color.BLACK);
                 }
             }
-
             public void focusLost(FocusEvent e) {
                 if(txtCari.getText().trim().isEmpty()){
                     txtCari.setText("Cari pengaduan...");
@@ -110,9 +95,7 @@ public class HomePanel extends JPanel {
         btnCari.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnCari.addActionListener(e -> loadData());
 
-        searchWrap.add(txtCari, BorderLayout.CENTER);
-
-        searchPanel.add(searchWrap, BorderLayout.CENTER);
+        searchPanel.add(txtCari, BorderLayout.CENTER);
         searchPanel.add(btnCari, BorderLayout.EAST);
 
         header.add(searchPanel);
@@ -120,9 +103,7 @@ public class HomePanel extends JPanel {
         return header;
     }
 
-    // ==================================================
-    // CONTENT
-    // ==================================================
+    // ================= CONTENT =================
     private JScrollPane createContent() {
 
         JPanel main = new JPanel(new BorderLayout());
@@ -136,7 +117,21 @@ public class HomePanel extends JPanel {
         title.setFont(new Font("Segoe UI", Font.BOLD, 24));
         title.setForeground(new Color(35,35,35));
 
+        // 🔥 FILTER TANPA NGUBAH LAYOUT
+        filterBox = new JComboBox<>(new String[]{"Semua", "Punya Saya"});
+        filterBox.setPreferredSize(new Dimension(150,35));
+
+        filterBox.addActionListener(e -> {
+            mode = filterBox.getSelectedItem().toString();
+            loadData();
+        });
+
+        JPanel rightTop = new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));
+        rightTop.setOpaque(false);
+        rightTop.add(filterBox);
+
         top.add(title, BorderLayout.WEST);
+        top.add(rightTop, BorderLayout.EAST);
 
         listPanel = new JPanel();
         listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
@@ -154,9 +149,7 @@ public class HomePanel extends JPanel {
         return scroll;
     }
 
-    // ==================================================
-    // LOAD DATA
-    // ==================================================
+    // ================= LOAD DATA =================
     private void loadData() {
 
         listPanel.removeAll();
@@ -168,56 +161,52 @@ public class HomePanel extends JPanel {
             String keyword = txtCari.getText().trim();
 
             String sql =
-                "SELECT p.judul, p.isi, p.tanggal, p.status, k.nama_kategori " +
+                "SELECT p.id_pengaduan, p.id_user, p.judul, p.isi, p.tanggal, p.status, k.nama_kategori " +
                 "FROM pengaduan p " +
                 "JOIN kategori k ON p.id_kategori = k.id_kategori " +
-                "WHERE p.id_user=? ";
+                "WHERE 1=1 ";
+
+            if(mode.equals("Punya Saya")){
+                sql += "AND p.id_user=? ";
+            }
 
             if(!keyword.equals("") &&
                !keyword.equals("Cari pengaduan...")) {
-
                 sql += "AND p.judul LIKE ? ";
             }
 
             sql += "ORDER BY p.tanggal DESC";
 
             PreparedStatement pst = conn.prepareStatement(sql);
-            pst.setString(1, Session.idUser);
+
+            int i = 1;
+
+            if(mode.equals("Punya Saya")){
+                pst.setString(i++, Session.idUser);
+            }
 
             if(!keyword.equals("") &&
                !keyword.equals("Cari pengaduan...")) {
-
-                pst.setString(2, "%" + keyword + "%");
+                pst.setString(i++, "%" + keyword + "%");
             }
 
             ResultSet rs = pst.executeQuery();
 
-            boolean ada = false;
-
             while(rs.next()) {
 
-                ada = true;
+                boolean isMine = rs.getString("id_user").equals(Session.idUser);
 
                 listPanel.add(createCard(
-                    rs.getString("judul"),
-                    rs.getString("isi"),
-                    rs.getString("nama_kategori"),
-                    rs.getString("tanggal"),
-                    rs.getString("status")
+                        rs.getString("id_pengaduan"),
+                        rs.getString("judul"),
+                        rs.getString("isi"),
+                        rs.getString("nama_kategori"),
+                        rs.getString("tanggal"),
+                        rs.getString("status"),
+                        isMine
                 ));
 
                 listPanel.add(Box.createRigidArea(new Dimension(0,14)));
-            }
-
-            if(!ada){
-
-                JLabel kosong = new JLabel("Belum ada pengaduan.");
-                kosong.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-                kosong.setForeground(Color.GRAY);
-                kosong.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-                listPanel.add(Box.createRigidArea(new Dimension(0,30)));
-                listPanel.add(kosong);
             }
 
             conn.close();
@@ -230,14 +219,14 @@ public class HomePanel extends JPanel {
         listPanel.repaint();
     }
 
-    // ==================================================
-    // CARD
-    // ==================================================
-    private JPanel createCard(String judul,
+    // ================= CARD =================
+    private JPanel createCard(String idPengaduan,
+                              String judul,
                               String isi,
                               String kategori,
                               String tanggal,
-                              String status) {
+                              String status,
+                              boolean isMine) {
 
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setOpaque(false);
@@ -253,27 +242,22 @@ public class HomePanel extends JPanel {
         JPanel left = new JPanel();
         left.setOpaque(false);
         left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-        left.setAlignmentX(Component.LEFT_ALIGNMENT);
+        left.setAlignmentX(Component.LEFT_ALIGNMENT); // penting
 
         JLabel lblJudul = new JLabel(judul);
         lblJudul.setFont(new Font("Segoe UI", Font.BOLD, 20));
-        lblJudul.setForeground(new Color(25,25,25));
-        lblJudul.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblJudul.setAlignmentX(Component.LEFT_ALIGNMENT); // 🔥
 
         JLabel lblInfo = new JLabel(kategori + " • " + tanggal);
-        lblInfo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         lblInfo.setForeground(new Color(130,130,130));
-        lblInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        lblInfo.setAlignmentX(Component.LEFT_ALIGNMENT); // 🔥
 
         JTextArea desc = new JTextArea(isi);
         desc.setEditable(false);
-        desc.setFocusable(false);
         desc.setOpaque(false);
         desc.setLineWrap(true);
         desc.setWrapStyleWord(true);
-        desc.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        desc.setForeground(new Color(80,80,80));
-        desc.setAlignmentX(Component.LEFT_ALIGNMENT);
+        desc.setAlignmentX(Component.LEFT_ALIGNMENT); // 🔥
 
         left.add(lblJudul);
         left.add(Box.createRigidArea(new Dimension(0,6)));
@@ -282,23 +266,47 @@ public class HomePanel extends JPanel {
         left.add(desc);
 
         // RIGHT
-        Color c = getStatusColor(status);
-
-        JLabel badge = new JLabel(status.toUpperCase());
-        badge.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        badge.setForeground(c);
-        badge.setOpaque(true);
-        badge.setBackground(new Color(
-            c.getRed(),
-            c.getGreen(),
-            c.getBlue(),
-            35
-        ));
-        badge.setBorder(new EmptyBorder(7,14,7,14));
-
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));
         right.setOpaque(false);
-        right.add(badge);
+
+        if(isMine){
+
+            JButton btn = new JButton("Detail"){
+                protected void paintComponent(Graphics g){
+                    Graphics2D g2 = (Graphics2D) g.create();
+                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                    g2.setColor(new Color(52,120,246));
+                    g2.fillRoundRect(0,0,getWidth(),getHeight(),18,18);
+                    g2.setColor(Color.WHITE);
+                    FontMetrics fm = g2.getFontMetrics();
+                    int x = (getWidth()-fm.stringWidth(getText()))/2;
+                    int y = (getHeight()-fm.getHeight())/2 + fm.getAscent();
+                    g2.drawString(getText(), x, y);
+                    g2.dispose();
+                }
+            };
+
+            btn.setPreferredSize(new Dimension(110,40));
+            btn.setBorder(null);
+            btn.setContentAreaFilled(false);
+            btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+            btn.addActionListener(e -> {
+
+                Container parent = getParent();
+
+                while(!(parent.getLayout() instanceof CardLayout)){
+                    parent = parent.getParent();
+                }
+
+                parent.add(new DetailPanel(idPengaduan), "detail");
+
+                CardLayout cl = (CardLayout) parent.getLayout();
+                cl.show(parent, "detail");
+            });
+
+            right.add(btn);
+        }
 
         card.add(left, BorderLayout.CENTER);
         card.add(right, BorderLayout.NORTH);
@@ -308,26 +316,7 @@ public class HomePanel extends JPanel {
         return wrapper;
     }
 
-    // ==================================================
-    // STATUS COLOR
-    // ==================================================
-    private Color getStatusColor(String status) {
-
-        if(status.equalsIgnoreCase("pending"))
-            return new Color(255,145,0);
-
-        if(status.equalsIgnoreCase("diproses"))
-            return new Color(0,120,255);
-
-        if(status.equalsIgnoreCase("selesai"))
-            return new Color(0,170,90);
-
-        return Color.GRAY;
-    }
-
-    // ==================================================
-    // ROUNDED PANEL
-    // ==================================================
+    // ================= ROUNDED =================
     class RoundedPanel extends JPanel {
 
         private int radius;
@@ -341,19 +330,11 @@ public class HomePanel extends JPanel {
 
             Graphics2D g2 = (Graphics2D) g.create();
 
-            g2.setRenderingHint(
-                RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON
-            );
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
 
             g2.setColor(getBackground());
-            g2.fillRoundRect(
-                0,0,
-                getWidth(),
-                getHeight(),
-                radius,
-                radius
-            );
+            g2.fillRoundRect(0,0,getWidth(),getHeight(),radius,radius);
 
             g2.dispose();
             super.paintComponent(g);
