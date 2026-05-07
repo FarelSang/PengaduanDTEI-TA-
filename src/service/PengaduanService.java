@@ -13,7 +13,7 @@ public class PengaduanService {
 
         try {
             Connection conn = Koneksi.getConnection();
-
+            //tabel pengaduan
             String sql = "SELECT id_pengaduan FROM pengaduan ORDER BY id_pengaduan DESC LIMIT 1";
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery(sql);

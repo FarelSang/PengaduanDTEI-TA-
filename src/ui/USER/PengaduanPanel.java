@@ -125,7 +125,7 @@ public class PengaduanPanel extends JPanel {
 
         try {
             Connection conn = Koneksi.getConnection();
-
+            //Tabel kategori
             String sql = "SELECT * FROM kategori";
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery(sql);

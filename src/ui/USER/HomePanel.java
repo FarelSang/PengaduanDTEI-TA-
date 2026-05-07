@@ -159,7 +159,8 @@ public class HomePanel extends JPanel {
             Connection conn = Koneksi.getConnection();
 
             String keyword = txtCari.getText().trim();
-
+            
+            //relasi & join
             String sql =
                 "SELECT p.id_pengaduan, p.id_user, p.judul, p.isi, p.tanggal, p.status, k.nama_kategori " +
                 "FROM pengaduan p " +
@@ -269,45 +270,43 @@ public class HomePanel extends JPanel {
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));
         right.setOpaque(false);
 
-        if(isMine){
+        // tombol detail SEKARANG SELALU ADA
+        JButton btn = new JButton("Detail"){
+            protected void paintComponent(Graphics g){
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(52,120,246));
+                g2.fillRoundRect(0,0,getWidth(),getHeight(),18,18);
+                g2.setColor(Color.WHITE);
+                FontMetrics fm = g2.getFontMetrics();
+                int x = (getWidth()-fm.stringWidth(getText()))/2;
+                int y = (getHeight()-fm.getHeight())/2 + fm.getAscent();
+                g2.drawString(getText(), x, y);
+                g2.dispose();
+            }
+        };
 
-            JButton btn = new JButton("Detail"){
-                protected void paintComponent(Graphics g){
-                    Graphics2D g2 = (Graphics2D) g.create();
-                    g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                    g2.setColor(new Color(52,120,246));
-                    g2.fillRoundRect(0,0,getWidth(),getHeight(),18,18);
-                    g2.setColor(Color.WHITE);
-                    FontMetrics fm = g2.getFontMetrics();
-                    int x = (getWidth()-fm.stringWidth(getText()))/2;
-                    int y = (getHeight()-fm.getHeight())/2 + fm.getAscent();
-                    g2.drawString(getText(), x, y);
-                    g2.dispose();
-                }
-            };
+        btn.setPreferredSize(new Dimension(110,40));
+        btn.setBorder(null);
+        btn.setContentAreaFilled(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-            btn.setPreferredSize(new Dimension(110,40));
-            btn.setBorder(null);
-            btn.setContentAreaFilled(false);
-            btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.addActionListener(e -> {
 
-            btn.addActionListener(e -> {
+            Container parent = getParent();
 
-                Container parent = getParent();
+            while(!(parent.getLayout() instanceof CardLayout)){
+                parent = parent.getParent();
+            }
 
-                while(!(parent.getLayout() instanceof CardLayout)){
-                    parent = parent.getParent();
-                }
+            parent.add(new DetailPanel(idPengaduan), "detail");
 
-                parent.add(new DetailPanel(idPengaduan), "detail");
+            CardLayout cl = (CardLayout) parent.getLayout();
+            cl.show(parent, "detail");
+        });
 
-                CardLayout cl = (CardLayout) parent.getLayout();
-                cl.show(parent, "detail");
-            });
-
-            right.add(btn);
-        }
-
+        right.add(btn);
+        
         card.add(left, BorderLayout.CENTER);
         card.add(right, BorderLayout.NORTH);
 

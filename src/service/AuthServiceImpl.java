@@ -10,6 +10,7 @@ public class AuthServiceImpl implements AuthService {
     public String login(String username, String password) {
         try {
             Connection conn = Koneksi.getConnection();
+            //tabel users
             String sql = "SELECT * FROM users WHERE username=? AND password=?";
             PreparedStatement pst = conn.prepareStatement(sql);
 

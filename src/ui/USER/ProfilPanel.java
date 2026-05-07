@@ -259,6 +259,7 @@ public class ProfilPanel extends JPanel {
         try {
             Connection conn = Koneksi.getConnection();
 
+            //agregat
             String sql =
                     "SELECT " +
                     "COUNT(*) total, " +

@@ -1,6 +1,7 @@
 package ui.USER;
 
 import config.Koneksi;
+import session.Session;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -10,6 +11,7 @@ import java.sql.*;
 public class DetailPanel extends JPanel {
 
     private String idPengaduan;
+    private String idPemilik;
 
     private JTextField txtJudul;
     private JComboBox<String> cbKategori;
@@ -17,6 +19,11 @@ public class DetailPanel extends JPanel {
     private JTextArea txtTanggapan;
 
     private JLabel lblStatus;
+
+    private JButton btnSave;
+    private JButton btnDelete;
+
+    private boolean isMine = false;
 
     public DetailPanel(String idPengaduan) {
 
@@ -66,13 +73,11 @@ public class DetailPanel extends JPanel {
         wrap.setOpaque(false);
         wrap.setBorder(new EmptyBorder(30,30,30,30));
 
-        // ================= CARD =================
         JPanel card = new RoundedPanel(25);
         card.setLayout(new BorderLayout());
         card.setBackground(Color.WHITE);
         card.setBorder(new EmptyBorder(25,25,25,25));
 
-        // ===== TOP =====
         JPanel top = new JPanel(new BorderLayout());
         top.setOpaque(false);
 
@@ -87,7 +92,6 @@ public class DetailPanel extends JPanel {
 
         top.add(statusWrap, BorderLayout.EAST);
 
-        // ===== FORM (JUDUL + KATEGORI SEJAJAR) =====
         JPanel formTop = new JPanel(new GridLayout(1,2,15,0));
         formTop.setOpaque(false);
         formTop.setBorder(new EmptyBorder(15,0,0,0));
@@ -104,12 +108,11 @@ public class DetailPanel extends JPanel {
         formTop.add(txtJudul);
         formTop.add(cbKategori);
 
-        // ===== ISI =====
         txtIsi = new JTextArea();
         txtIsi.setLineWrap(true);
         txtIsi.setWrapStyleWord(true);
         txtIsi.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        txtIsi.setBorder(new EmptyBorder(15,15,15,15)); // 🔥 biar gak mentok kiri
+        txtIsi.setBorder(new EmptyBorder(15,15,15,15));
 
         JScrollPane isiScroll = new JScrollPane(txtIsi);
         isiScroll.setBorder(BorderFactory.createTitledBorder("Isi Pengaduan"));
@@ -129,7 +132,7 @@ public class DetailPanel extends JPanel {
         // ================= TANGGAPAN =================
         JPanel tanggapanCard = new RoundedPanel(25);
         tanggapanCard.setLayout(new BorderLayout());
-        tanggapanCard.setBackground(new Color(220,230,245)); // lebih tegas tapi tetap soft
+        tanggapanCard.setBackground(new Color(220,230,245));
         tanggapanCard.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200,215,235)),
                 new EmptyBorder(25,25,25,25)
@@ -153,7 +156,7 @@ public class DetailPanel extends JPanel {
         JPanel btnArea = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnArea.setOpaque(false);
 
-        JButton btnSave = new JButton("Simpan"){
+        btnSave = new JButton("Simpan"){
             protected void paintComponent(Graphics g){
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -175,9 +178,20 @@ public class DetailPanel extends JPanel {
 
         btnSave.addActionListener(e -> simpanData());
 
+        // 🔥 BUTTON DELETE (TAMBAHAN)
+        btnDelete = new JButton("Hapus");
+        btnDelete.setPreferredSize(new Dimension(140,45));
+        btnDelete.setBackground(new Color(220,53,69));
+        btnDelete.setForeground(Color.WHITE);
+        btnDelete.setFocusPainted(false);
+        btnDelete.setBorder(null);
+        btnDelete.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        btnDelete.addActionListener(e -> hapusData());
+
+        btnArea.add(btnDelete);
         btnArea.add(btnSave);
 
-        // ================= WRAP =================
         wrap.add(card);
         wrap.add(Box.createRigidArea(new Dimension(0,20)));
         wrap.add(tanggapanCard);
@@ -200,7 +214,6 @@ public class DetailPanel extends JPanel {
             );
 
             pst.setString(1, idPengaduan);
-
             ResultSet rs = pst.executeQuery();
 
             if(rs.next()) {
@@ -208,7 +221,18 @@ public class DetailPanel extends JPanel {
                 txtIsi.setText(rs.getString("isi"));
                 cbKategori.setSelectedItem(rs.getString("nama_kategori"));
                 setStatus(rs.getString("status"));
+
+                idPemilik = rs.getString("id_user");
+                isMine = idPemilik.equals(Session.idUser);
             }
+
+            // 🔥 KONTROL AKSES
+            txtJudul.setEditable(isMine);
+            txtIsi.setEditable(isMine);
+            cbKategori.setEnabled(isMine);
+
+            btnSave.setVisible(isMine);
+            btnDelete.setVisible(isMine);
 
             PreparedStatement pst2 = conn.prepareStatement(
                 "SELECT isi_tanggapan FROM tanggapan WHERE id_pengaduan=?"
@@ -251,8 +275,58 @@ public class DetailPanel extends JPanel {
         }
     }
 
-    private void setStatus(String status) {
+    // 🔥 DELETE
+    private void hapusData() {
 
+        int confirm = JOptionPane.showConfirmDialog(
+                this,
+                "Yakin ingin menghapus pengaduan ini?",
+                "Konfirmasi",
+                JOptionPane.YES_NO_OPTION
+                
+        );
+
+        if(confirm == JOptionPane.YES_OPTION){
+
+            try {
+
+                Connection conn = Koneksi.getConnection();
+
+                //database transaction & trigger
+                CallableStatement cs =
+                        conn.prepareCall("{CALL sp_hapus_pengaduan(?)}");
+
+                cs.setString(1, idPengaduan);
+
+                cs.execute();
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Pengaduan berhasil dihapus!"
+                );
+
+                Container parent = getParent();
+
+                CardLayout cl =
+                        (CardLayout) parent.getLayout();
+
+                cl.show(parent, "home");
+
+                conn.close();
+
+            } catch(Exception e){
+
+                JOptionPane.showMessageDialog(
+                        this,
+                        e.getMessage()
+                );
+
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void setStatus(String status) {
         lblStatus.setText(status.toUpperCase());
 
         if(status.equalsIgnoreCase("pending")) {
