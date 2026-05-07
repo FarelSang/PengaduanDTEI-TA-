@@ -1,6 +1,7 @@
 package ui.ADMIN;
 
 import session.Session;
+import ui.LoginForm;
 
 import javax.swing.*;
 import java.awt.*;
@@ -78,29 +79,66 @@ public class AdminDashboard extends JFrame {
         menu.add(btnProfil);
 
         // ================= BOTTOM =================
-        JPanel bottom = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 15));
+        JPanel bottomWrapper = new JPanel();
+        bottomWrapper.setOpaque(false);
+        bottomWrapper.setLayout(new BoxLayout(bottomWrapper, BoxLayout.Y_AXIS));
+
+        // ================= LOGOUT =================
+        JPanel logoutWrap = new JPanel(new FlowLayout(
+                FlowLayout.LEFT,
+                15,
+                10
+        ));
+
+        logoutWrap.setOpaque(false);
+
+        MenuButton btnLogout = new MenuButton("Logout");
+
+        btnLogout.setPreferredSize(new Dimension(230, 48));
+        btnLogout.setMaximumSize(new Dimension(230, 48));
+
+        btnLogout.addActionListener(e -> logout());
+
+        logoutWrap.add(btnLogout);
+
+        // ================= USER INFO =================
+        JPanel bottom = new JPanel(new FlowLayout(
+                FlowLayout.LEFT,
+                15,
+                15
+        ));
+
         bottom.setOpaque(false);
+
         bottom.setBorder(BorderFactory.createMatteBorder(
-                1, 0, 0, 0,
+                1,
+                0,
+                0,
+                0,
                 new Color(20, 40, 65)
         ));
 
-        AvatarLabel avatar = new AvatarLabel(getInitial(Session.username));
+        AvatarLabel avatar =
+                new AvatarLabel(getInitial(Session.username));
 
         JPanel userText = new JPanel();
         userText.setOpaque(false);
-        userText.setLayout(new BoxLayout(userText, BoxLayout.Y_AXIS));
+        userText.setLayout(new BoxLayout(
+                userText,
+                BoxLayout.Y_AXIS
+        ));
 
         JLabel name = new JLabel(
-                Session.username == null ?
-                        "Admin" :
-                        Session.username
+                Session.username == null
+                        ? "Admin"
+                        : Session.username
         );
 
         name.setForeground(Color.WHITE);
         name.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
         JLabel role = new JLabel("Administrator");
+
         role.setForeground(new Color(120, 150, 185));
         role.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
@@ -110,9 +148,13 @@ public class AdminDashboard extends JFrame {
         bottom.add(avatar);
         bottom.add(userText);
 
+        // ================= WRAP =================
+        bottomWrapper.add(logoutWrap);
+        bottomWrapper.add(bottom);
+
         sidebar.add(top, BorderLayout.NORTH);
         sidebar.add(menu, BorderLayout.CENTER);
-        sidebar.add(bottom, BorderLayout.SOUTH);
+        sidebar.add(bottomWrapper, BorderLayout.SOUTH);
 
         // ================= ACTION =================
         btnDashboard.addActionListener(e -> {
@@ -134,6 +176,34 @@ public class AdminDashboard extends JFrame {
     }
 
     // =====================================================
+    // LOGOUT
+    // =====================================================
+    private void logout() {
+
+        int confirm =
+                JOptionPane.showConfirmDialog(
+                        this,
+                        "Yakin ingin logout?",
+                        "Logout",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+        if(confirm == JOptionPane.YES_OPTION) {
+
+            // HAPUS SESSION
+            Session.idUser = null;
+            Session.username = null;
+            Session.role = null;
+
+            // TUTUP DASHBOARD
+            dispose();
+
+            // KEMBALI KE LOGIN
+            new LoginForm();
+        }
+    }
+
+    // =====================================================
     // CONTENT
     // =====================================================
     private JPanel createContent() {
@@ -143,10 +213,12 @@ public class AdminDashboard extends JFrame {
 
         contentPanel.add(new AdminHomePanel(), "dashboard");
         contentPanel.add(new AdminPengaduanPanel(), "pengaduan");
+
         contentPanel.add(
                 new ProfilAdminPanel(Session.idUser),
                 "profil"
         );
+
         return contentPanel;
     }
 
@@ -176,23 +248,6 @@ public class AdminDashboard extends JFrame {
     }
 
     // =====================================================
-    // TEMP PANEL
-    // =====================================================
-    private JPanel dummyPanel(String text) {
-
-        JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBackground(new Color(8, 23, 45));
-
-        JLabel lbl = new JLabel(text);
-        lbl.setForeground(Color.WHITE);
-        lbl.setFont(new Font("Segoe UI", Font.BOLD, 30));
-
-        panel.add(lbl);
-
-        return panel;
-    }
-
-    // =====================================================
     // GET INITIAL
     // =====================================================
     private String getInitial(String text) {
@@ -217,15 +272,24 @@ public class AdminDashboard extends JFrame {
             super(text);
 
             setHorizontalAlignment(SwingConstants.LEFT);
+
             setFont(new Font("Segoe UI", Font.BOLD, 16));
+
             setForeground(new Color(150, 180, 215));
 
             setPreferredSize(new Dimension(230, 52));
             setMaximumSize(new Dimension(999, 52));
 
-            setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
+            setBorder(BorderFactory.createEmptyBorder(
+                    0,
+                    20,
+                    0,
+                    0
+            ));
+
             setFocusPainted(false);
             setContentAreaFilled(false);
+
             setCursor(new Cursor(Cursor.HAND_CURSOR));
 
             addMouseListener(new MouseAdapter() {
@@ -259,29 +323,42 @@ public class AdminDashboard extends JFrame {
             if (active) {
 
                 g2.setColor(new Color(36, 76, 122));
+
                 g2.fillRoundRect(
-                        0, 0,
+                        0,
+                        0,
                         getWidth(),
                         getHeight(),
-                        18, 18
+                        18,
+                        18
                 );
 
                 setForeground(Color.WHITE);
 
-            } else if (hover) {
+            }
+            else if (hover) {
 
-                g2.setColor(new Color(36, 76, 122, 100));
+                g2.setColor(
+                        new Color(36, 76, 122, 100)
+                );
+
                 g2.fillRoundRect(
-                        0, 0,
+                        0,
+                        0,
                         getWidth(),
                         getHeight(),
-                        18, 18
+                        18,
+                        18
                 );
 
                 setForeground(Color.WHITE);
 
-            } else {
-                setForeground(new Color(150, 180, 215));
+            }
+            else {
+
+                setForeground(
+                        new Color(150, 180, 215)
+                );
             }
 
             g2.dispose();
@@ -298,29 +375,57 @@ public class AdminDashboard extends JFrame {
         private String text;
 
         public AvatarLabel(String text) {
+
             this.text = text;
-            setPreferredSize(new Dimension(50, 50));
+
+            setPreferredSize(
+                    new Dimension(50, 50)
+            );
         }
 
         protected void paintComponent(Graphics g) {
 
-            Graphics2D g2 = (Graphics2D) g.create();
+            Graphics2D g2 =
+                    (Graphics2D) g.create();
 
             g2.setRenderingHint(
                     RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON
             );
 
-            g2.setColor(new Color(35, 82, 130));
-            g2.fillOval(0, 0, getWidth(), getHeight());
+            g2.setColor(
+                    new Color(35, 82, 130)
+            );
 
-            g2.setFont(new Font("Segoe UI", Font.BOLD, 20));
-            FontMetrics fm = g2.getFontMetrics();
+            g2.fillOval(
+                    0,
+                    0,
+                    getWidth(),
+                    getHeight()
+            );
 
-            int x = (getWidth() - fm.stringWidth(text)) / 2;
-            int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+            g2.setFont(
+                    new Font(
+                            "Segoe UI",
+                            Font.BOLD,
+                            20
+                    )
+            );
+
+            FontMetrics fm =
+                    g2.getFontMetrics();
+
+            int x =
+                    (getWidth()
+                            - fm.stringWidth(text)) / 2;
+
+            int y =
+                    (getHeight()
+                            - fm.getHeight()) / 2
+                            + fm.getAscent();
 
             g2.setColor(Color.WHITE);
+
             g2.drawString(text, x, y);
 
             g2.dispose();

@@ -316,7 +316,7 @@ public class AdminPengaduanPanel extends JPanel {
                   parent = parent.getParent();
               }
               JPanel main = (JPanel) parent;
-              main.add(new DetailPengaduanPanel(idPengaduan),"detail");
+              main.add(new DetailPengaduanPanel(idPengaduan, "pengaduan"),"detail");
               ((CardLayout) main.getLayout()).show(main,"detail");
           });
 

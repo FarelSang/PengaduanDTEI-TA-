@@ -79,8 +79,8 @@ public class AdminHomePanel extends JPanel {
         date.setFont(new Font("Segoe UI", Font.PLAIN, 15));
         date.setForeground(new Color(120, 145, 180));
 
-                header.add(left, BorderLayout.WEST);
-                header.add(date, BorderLayout.EAST);
+        header.add(left, BorderLayout.WEST);
+        header.add(date, BorderLayout.EAST);
 
         return header;
     }
@@ -254,7 +254,7 @@ public class AdminHomePanel extends JPanel {
             Connection conn = Koneksi.getConnection();
 
             String sql =
-                    "SELECT p.judul, p.tanggal, p.status, p.is_anonim, u.username " +
+                    "SELECT p.id_pengaduan, p.judul, p.tanggal, p.status, p.is_anonim, u.username " +
                     "FROM pengaduan p " +
                     "JOIN users u ON p.id_user=u.id_user " +
                     "ORDER BY p.tanggal DESC LIMIT 6";
@@ -273,6 +273,7 @@ public class AdminHomePanel extends JPanel {
                 }
 
                 tablePanel.add(createRow(
+                        rs.getString("id_pengaduan"),
                         rs.getString("judul"),
                         pelapor,
                         rs.getString("tanggal"),
@@ -321,7 +322,8 @@ public class AdminHomePanel extends JPanel {
     // ======================================================
     // ROW DATA
     // ======================================================
-    private JPanel createRow(String judul,
+    private JPanel createRow(String idPengaduan,
+                             String judul,
                              String user,
                              String tanggal,
                              String status) {
@@ -343,6 +345,12 @@ public class AdminHomePanel extends JPanel {
         btn.setBorder(null);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        // ======================================================
+        // DETAIL ACTION
+        // ======================================================
+
+        btn.addActionListener(e -> bukaDetailPengaduan(idPengaduan));
+
         row.add(btn);
 
         JPanel wrap = new JPanel();
@@ -353,6 +361,29 @@ public class AdminHomePanel extends JPanel {
         wrap.add(line());
 
         return wrap;
+    }
+
+    // ======================================================
+    // BUKA DETAIL
+    // ======================================================
+    private void bukaDetailPengaduan(String idPengaduan) {
+
+        Container parent = getParent();
+
+        if(parent instanceof JPanel) {
+
+            JPanel contentPanel = (JPanel) parent;
+
+            contentPanel.add(
+                    new DetailPengaduanPanel(idPengaduan, "dashboard"),
+                    "detail_pengaduan"
+            );
+
+            CardLayout cl =
+                    (CardLayout) contentPanel.getLayout();
+
+            cl.show(contentPanel, "detail_pengaduan");
+        }
     }
 
     private JLabel cell(String text) {

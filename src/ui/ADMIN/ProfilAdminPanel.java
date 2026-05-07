@@ -169,13 +169,10 @@ public class ProfilAdminPanel extends JPanel {
         btnWrap.setOpaque(false);
 
         JButton btnSave = roundedBtn("Simpan", new Color(72,150,255));
-        JButton btnLogout = roundedBtn("Log Out", new Color(220,70,70));
 
         btnSave.addActionListener(e -> simpanProfil());
-        btnLogout.addActionListener(e -> logout());
 
         btnWrap.add(btnSave);
-        btnWrap.add(btnLogout);
 
         form.add(btnWrap, gbc);
 
@@ -223,35 +220,6 @@ public class ProfilAdminPanel extends JPanel {
         if(rs.next()) return rs.getString(1);
         return "0";
     }
-    
-    private void logout() {
-
-    int confirm = JOptionPane.showConfirmDialog(
-            this,
-            "Yakin ingin logout?",
-            "Konfirmasi",
-            JOptionPane.YES_NO_OPTION
-    );
-
-    if(confirm == JOptionPane.YES_OPTION) {
-
-        try {
-            // 🔥 hapus session
-            session.Session.idUser = null;
-            session.Session.username = null;
-
-            // 🔥 ambil window utama
-            Window window = SwingUtilities.getWindowAncestor(this);
-            window.dispose();
-
-            // 🔥 buka halaman login lagi
-            new ui.LoginForm().setVisible(true);
-
-        } catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-}
 
     private void simpanProfil() {
 

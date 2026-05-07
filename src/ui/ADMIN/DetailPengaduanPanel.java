@@ -14,6 +14,7 @@ import java.util.Date;
 public class DetailPengaduanPanel extends JPanel {
 
     private String idPengaduan;
+    private String fromPage;
 
     private JLabel lblJudul;
     private JLabel lblKategori;
@@ -26,9 +27,10 @@ public class DetailPengaduanPanel extends JPanel {
 
     private JComboBox<String> cbStatus;
 
-    public DetailPengaduanPanel(String idPengaduan) {
+    public DetailPengaduanPanel(String idPengaduan, String fromPage){
 
         this.idPengaduan = idPengaduan;
+        this.fromPage = fromPage;
 
         setLayout(new BorderLayout());
         setBackground(new Color(6,20,39));
@@ -59,9 +61,16 @@ public class DetailPengaduanPanel extends JPanel {
         );
 
         btnBack.addActionListener(e -> {
+
             Container parent = getParent();
-            CardLayout cl = (CardLayout) parent.getLayout();
-            cl.show(parent, "pengaduan");
+
+            if(parent.getLayout() instanceof CardLayout) {
+
+                CardLayout cl =
+                        (CardLayout) parent.getLayout();
+
+                cl.show(parent, fromPage);
+            }
         });
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT,0,0));

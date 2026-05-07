@@ -199,11 +199,6 @@ public class ProfilPanel extends JPanel {
         JPanel bottom = new JPanel(new FlowLayout(FlowLayout.CENTER));
         bottom.setOpaque(false);
 
-        RoundedButton btnLogout = new RoundedButton("Log Out");
-        btnLogout.setPreferredSize(new Dimension(180,50));
-
-        bottom.add(btnLogout);
-
         card.add(top, BorderLayout.NORTH);
         card.add(bottom, BorderLayout.SOUTH);
 
@@ -216,7 +211,6 @@ public class ProfilPanel extends JPanel {
         });
 
         btnUbah.addActionListener(e -> updateProfil());
-        btnLogout.addActionListener(e -> logout());
 
         return card;
     }
@@ -340,23 +334,6 @@ public class ProfilPanel extends JPanel {
         } catch(Exception e) {
             e.printStackTrace();
         }
-    }
-
-    // ==================================================
-    // LOGOUT
-    // ==================================================
-    private void logout() {
-
-        if(autoRefresh != null){
-            autoRefresh.stop();
-        }
-
-        Session.idUser = null;
-        Session.username = null;
-        Session.role = null;
-
-        new LoginForm().setVisible(true);
-        SwingUtilities.getWindowAncestor(this).dispose();
     }
 
     // ==================================================

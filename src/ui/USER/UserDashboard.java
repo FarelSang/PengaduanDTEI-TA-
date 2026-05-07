@@ -1,10 +1,12 @@
 package ui.USER;
 
 import session.Session;
+import ui.LoginForm;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import ui.LoginForm;
 
 public class UserDashboard extends JFrame {
 
@@ -14,14 +16,12 @@ public class UserDashboard extends JFrame {
     private NavButton btnHome, btnPengaduan, btnProfil;
 
     public UserDashboard() {
+
         setTitle("Dashboard User");
         setExtendedState(MAXIMIZED_BOTH);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
-        // ======================
-        // 🔝 NAVBAR
-        // ======================
         JPanel navbar = new JPanel(new BorderLayout());
         navbar.setBackground(new Color(33, 74, 110));
         navbar.setBorder(BorderFactory.createEmptyBorder(15, 40, 15, 40));
@@ -41,26 +41,60 @@ public class UserDashboard extends JFrame {
         menu.add(btnPengaduan);
         menu.add(btnProfil);
 
-        // ======================
-        // 🔵 AVATAR USER
-        // ======================
+        // =====================================================
+        // AVATAR
+        // =====================================================
+
         String huruf = "U";
 
-        if (Session.username != null && !Session.username.trim().isEmpty()) {
-            huruf = Session.username.substring(0, 1).toUpperCase();
+        if (Session.username != null &&
+                !Session.username.trim().isEmpty()) {
+
+            huruf =
+                    Session.username
+                            .substring(0, 1)
+                            .toUpperCase();
         }
 
         CircleAvatar avatar = new CircleAvatar(huruf);
+
         avatar.setPreferredSize(new Dimension(50,50));
         avatar.setMaximumSize(new Dimension(50,50));
 
+        // =====================================================
+        // RIGHT AREA (AVATAR + LOGOUT)
+        // =====================================================
+
+        JPanel rightArea =
+                new JPanel(new FlowLayout(
+                        FlowLayout.RIGHT,
+                        14,
+                        0
+                ));
+
+        rightArea.setOpaque(false);
+
+        NavButton btnLogout = new NavButton("Logout");
+
+        btnLogout.setPreferredSize(
+                new Dimension(120, 42)
+        );
+
+        btnLogout.addActionListener(e -> logout());
+
+        rightArea.add(btnLogout);
+        rightArea.add(avatar);
+
+        // =====================================================
+
         navbar.add(logo, BorderLayout.WEST);
         navbar.add(menu, BorderLayout.CENTER);
-        navbar.add(avatar, BorderLayout.EAST);
+        navbar.add(rightArea, BorderLayout.EAST);
 
-        // ======================
-        // 🔄 CARD LAYOUT
-        // ======================
+        // =====================================================
+        // MAIN PANEL
+        // =====================================================
+
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
@@ -68,9 +102,10 @@ public class UserDashboard extends JFrame {
         mainPanel.add(new PengaduanPanel(), "pengaduan");
         mainPanel.add(new ProfilPanel(), "profil");
 
-        // ======================
-        // 🔗 NAVIGATION ACTION
-        // ======================
+        // =====================================================
+        // ACTION
+        // =====================================================
+
         btnHome.addActionListener(e -> {
             switchPage("home");
             setActive(btnHome);
@@ -94,16 +129,46 @@ public class UserDashboard extends JFrame {
         setVisible(true);
     }
 
-    // ======================
-    // 🔁 SWITCH PAGE
-    // ======================
+    // =====================================================
+    // LOGOUT
+    // =====================================================
+
+    private void logout() {
+
+        int confirm =
+                JOptionPane.showConfirmDialog(
+                        this,
+                        "Yakin ingin logout?",
+                        "Logout",
+                        JOptionPane.YES_NO_OPTION
+                );
+
+        if(confirm == JOptionPane.YES_OPTION) {
+
+            // HAPUS SESSION
+            Session.idUser = null;
+            Session.username = null;
+            Session.role = null;
+
+            // KEMBALI KE LOGIN
+            dispose();
+
+            new LoginForm();
+        }
+    }
+
+    // =====================================================
+    // SWITCH PAGE
+    // =====================================================
+
     private void switchPage(String page) {
         cardLayout.show(mainPanel, page);
     }
 
-    // ======================
-    // 🎯 ACTIVE NAVBAR
-    // ======================
+    // =====================================================
+    // ACTIVE MENU
+    // =====================================================
+
     private void setActive(NavButton activeBtn) {
 
         NavButton[] buttons = {
@@ -119,9 +184,10 @@ public class UserDashboard extends JFrame {
         activeBtn.setActive(true);
     }
 
-    // ======================
-    // 🔥 CUSTOM NAV BUTTON
-    // ======================
+    // =====================================================
+    // NAV BUTTON
+    // =====================================================
+
     class NavButton extends JButton {
 
         private boolean isActive = false;
@@ -133,10 +199,22 @@ public class UserDashboard extends JFrame {
 
             setFont(new Font("Segoe UI", Font.BOLD, 14));
             setForeground(new Color(200, 200, 200));
-            setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
+
+            setBorder(
+                    BorderFactory.createEmptyBorder(
+                            10,
+                            25,
+                            10,
+                            25
+                    )
+            );
+
             setContentAreaFilled(false);
             setFocusPainted(false);
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+            setCursor(
+                    new Cursor(Cursor.HAND_CURSOR)
+            );
 
             addMouseListener(new MouseAdapter() {
 
@@ -160,7 +238,8 @@ public class UserDashboard extends JFrame {
         @Override
         protected void paintComponent(Graphics g) {
 
-            Graphics2D g2 = (Graphics2D) g.create();
+            Graphics2D g2 =
+                    (Graphics2D) g.create();
 
             g2.setRenderingHint(
                     RenderingHints.KEY_ANTIALIASING,
@@ -169,72 +248,120 @@ public class UserDashboard extends JFrame {
 
             if (isActive) {
 
-                g2.setColor(new Color(70, 130, 180));
+                g2.setColor(
+                        new Color(70, 130, 180)
+                );
+
                 g2.fillRoundRect(
-                        0, 0,
+                        0,
+                        0,
                         getWidth(),
                         getHeight(),
-                        25, 25
+                        25,
+                        25
                 );
 
                 setForeground(Color.WHITE);
 
-            } else if (isHover) {
+            }
+            else if (isHover) {
 
-                g2.setColor(new Color(70, 130, 180, 80));
+                g2.setColor(
+                        new Color(
+                                70,
+                                130,
+                                180,
+                                80
+                        )
+                );
+
                 g2.fillRoundRect(
-                        0, 0,
+                        0,
+                        0,
                         getWidth(),
                         getHeight(),
-                        25, 25
+                        25,
+                        25
                 );
 
                 setForeground(Color.WHITE);
 
-            } else {
+            }
+            else {
 
-                setForeground(new Color(200, 200, 200));
+                setForeground(
+                        new Color(200, 200, 200)
+                );
             }
 
             g2.dispose();
+
             super.paintComponent(g);
         }
     }
 
-    // ======================
-    // 🔵 AVATAR BULAT
-    // ======================
+    // =====================================================
+    // AVATAR
+    // =====================================================
+
     class CircleAvatar extends JLabel {
 
         private String text;
 
         public CircleAvatar(String text) {
+
             this.text = text;
-            setHorizontalAlignment(SwingConstants.CENTER);
+
+            setHorizontalAlignment(
+                    SwingConstants.CENTER
+            );
         }
 
         @Override
         protected void paintComponent(Graphics g) {
 
-            Graphics2D g2 = (Graphics2D) g.create();
+            Graphics2D g2 =
+                    (Graphics2D) g.create();
 
             g2.setRenderingHint(
                     RenderingHints.KEY_ANTIALIASING,
                     RenderingHints.VALUE_ANTIALIAS_ON
             );
 
-            // bulatan
-            g2.setColor(new Color(70, 130, 180));
-            g2.fillOval(0, 0, getWidth(), getHeight());
+            // BULATAN
+            g2.setColor(
+                    new Color(70, 130, 180)
+            );
 
-            // huruf
+            g2.fillOval(
+                    0,
+                    0,
+                    getWidth(),
+                    getHeight()
+            );
+
+            // HURUF
             g2.setColor(Color.WHITE);
-            g2.setFont(new Font("Segoe UI", Font.BOLD, 18));
 
-            FontMetrics fm = g2.getFontMetrics();
+            g2.setFont(
+                    new Font(
+                            "Segoe UI",
+                            Font.BOLD,
+                            18
+                    )
+            );
 
-            int x = (getWidth() - fm.stringWidth(text)) / 2;
-            int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
+            FontMetrics fm =
+                    g2.getFontMetrics();
+
+            int x =
+                    (getWidth() -
+                            fm.stringWidth(text)) / 2;
+
+            int y =
+                    ((getHeight() -
+                            fm.getHeight()) / 2)
+                            + fm.getAscent();
 
             g2.drawString(text, x, y);
 
